@@ -1,4 +1,7 @@
+#!/usr/bin/env python
+
 import unittest
+import db
 
 class TestDBMethods(unittest.TestCase):
 
