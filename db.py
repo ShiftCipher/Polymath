@@ -12,6 +12,8 @@ class DB(object):
         self.name = name
         self.conn = None
         self.cur = None
+        self.create()
+        self.connect()
 
     def create(self):
         if os.path.isfile(self.name):
