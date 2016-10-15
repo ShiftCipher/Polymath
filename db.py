@@ -1,15 +1,26 @@
 #!/usr/bin/env python
 
 import sqlite3
+import os
 
 class DB(object):
 
     """docstring for DB."""
 
     def __init__(self, name):
+        name = name + ".db"
         self.name = name
         self.conn = None
         self.cur = None
+
+    def create(self):
+        if os.path.isfile(self.name):
+            pass
+        else
+            try:
+                file = open(self.name, "w+")
+            except Exception as e:
+                raise
 
     def connect(self):
         try:
@@ -28,10 +39,11 @@ class DB(object):
 
     def drop(self):
         try:
-            ## Delete File
+            if os.path.isfile(self.name):
+                os.remove(self.name)
         except Exception as e:
             print(e)
-            raise Exception(" Error File Not Found")
+            raise Exception("Error File Cannnot Be Deleted")
 
     def commit(self):
         try:
