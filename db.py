@@ -13,15 +13,15 @@ class DB(object):
         self.conn = None
         self.cur = None
         self.create()
-        self.connect()
 
     def create(self):
         if os.path.isfile(self.name):
             pass
-        else
+        else:
             try:
                 file = open(self.name, "w+")
             except Exception as e:
+                print(e)
                 raise
 
     def connect(self):
@@ -33,19 +33,24 @@ class DB(object):
             raise
 
     def __del__(self):
-        try
-            return self.conn.close()
+        try:
+            if self.conn != None and self.cur != None:
+                print("Closing Conection by Object Deletion or Program Exit")
+                return self.cur.close()
+            else:
+                print("Please Connect the Database")
         except Exception as e:
             print(e)
-            raise Exception(query + " Error Not Close")
+            raise
 
     def drop(self):
         try:
             if os.path.isfile(self.name):
                 os.remove(self.name)
+                print("Sucessful Delete Filename %s" % self.name)
         except Exception as e:
             print(e)
-            raise Exception("Error File Cannnot Be Deleted")
+            raise
 
     def commit(self):
         try:
@@ -54,12 +59,20 @@ class DB(object):
             raise
 
     def query(self, name, query, values):
-        queries = {
-          'create': self.conn.execute("CREATE TABLE {0};".format(self.name),
-          'insert': self.conn.execute("INSERT INTO {0} VALUES {1}").format(self.name, values),
-          'drop': self.conn.execute("DROP TABLE " + self.name + ";")
-        }[value](x)
-        try:
-            return self.conn.execute(queries[query])
-        except Exception as e:
-            raise
+        if type(name) is str and type(query) is str and values is str:
+            if query == 'create':
+                query = "CREATE TABLE %s;" % name
+            elif query == 'drop':
+                query = "DROP TABLE %s;" % name
+            elif query == 'insert':
+                query = "INSERT INTO %s VALUES %s" % self.name, values
+            try:
+                return self.conn.execute(query)
+            except Exception as e:
+                print(e)
+                raise
+
+ebay = DB('ebay')
+ebay.connect()
+ebay.query('', '')
+ebay.drop()
