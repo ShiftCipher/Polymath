@@ -68,7 +68,7 @@ class DB(object):
             raise
 
     def createTable(self, tableName, tableFields):
-        if type(tableName) is str and type(tableFields) is dict:
+        if isinstance(tableName, str) and isinstance(tableFields, dict):
             tableFields = str(fields)
             for symbol in ["'",':', ',', '{', '}']:
                 if symbol in tableFields:
@@ -81,7 +81,7 @@ class DB(object):
                 raise
 
     def dropTable(self, tableName):
-        if type(tableName) is str:
+        if isinstance(tableName, str):
             query = "DROP TABLE IF EXISTS %s" % tableName
             try:
                 print("Drop Table Sucessful")
@@ -90,7 +90,7 @@ class DB(object):
                 raise
 
     def insert(self, tableName, tableFieldsValues):
-        if type(tableName) is str and type(tableFieldsValues) is dict:
+        if isinstance(tableName, str) and isinstance(tableFieldsValues, dict):
             query = "INSERT INTO %s VALUES %s" % (tableName, tableFieldsValues)
             try:
                 print("Insert Values Sucessful")
@@ -99,7 +99,7 @@ class DB(object):
                 raise
 
     def select(self, tableName, tableFieldsValues):
-        if type(tableName) is str and type(tableFieldsValues) is dict:
+        if isinstance(tableName, str) and isinstance(tableFieldsValues, dict):
             query = "INSERT INTO %s VALUES %s" % (tableName, tableFieldsValues)
             try:
                 print("Insert Values Sucessful")
