@@ -8,8 +8,7 @@ class DB(object):
     """docstring for DB."""
 
     def __init__(self, name):
-        name = name + ".sqlite"
-        self.name = name
+        self.name = name + ".sqlite3"
         self.conn = None
         self.cur = None
         self.create()
@@ -64,13 +63,17 @@ class DB(object):
 
     def commit(self):
         try:
-            return self.cur.commit();
+            return self.conn.commit();
         except Exception as e:
             raise
 
     def createTable(self, tableName, tableFields):
         if type(tableName) is str and type(tableFields) is dict:
-            query = "CREATE TABLE %s %s" % (tableName, for x in tableFields : x + ' ' + x[value])
+            tableFields = str(fields)
+            for symbol in ["'",':', ',', '{', '}']:
+                if symbol in tableFields:
+                    tableFields = tableFields.replace(symbol, "")
+            query = "CREATE TABLE IF NOT EXISTS %s (%s)" % (tableName, tableFields)
             try:
                 print("Create Table Sucessful")
                 return self.cur.execute(query)
@@ -79,14 +82,14 @@ class DB(object):
 
     def dropTable(self, tableName):
         if type(tableName) is str:
-            query = "DROP TABLE %s" % tableName
+            query = "DROP TABLE IF EXISTS %s" % tableName
             try:
                 print("Drop Table Sucessful")
                 return self.cur.execute(query)
             except Exception as e:
                 raise
 
-    def insertTable(self, tableName, tableFieldsValues):
+    def insert(self, tableName, tableFieldsValues):
         if type(tableName) is str and type(tableFieldsValues) is dict:
             query = "INSERT INTO %s VALUES %s" % (tableName, tableFieldsValues)
             try:
@@ -94,8 +97,15 @@ class DB(object):
                 return self.cur.execute(query)
             except Exception as e:
                 raise
-        else:
-            raise Exception("Query Must Be String")
+
+    def select(self, tableName, tableFieldsValues):
+        if type(tableName) is str and type(tableFieldsValues) is dict:
+            query = "INSERT INTO %s VALUES %s" % (tableName, tableFieldsValues)
+            try:
+                print("Insert Values Sucessful")
+                return self.cur.execute(query)
+            except Exception as e:
+                raise
 
 ebay = DB('ebay')
 ebay.connect()
@@ -109,5 +119,5 @@ fields = {
 }
 
 ebay.createTable('daniel', fields)
+ebay.commit()
 ebay.close()
-ebay.drop()
