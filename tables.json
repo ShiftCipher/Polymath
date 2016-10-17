@@ -1,0 +1,7 @@
+{
+    "BestOfferEnabled" : "INTEGER",
+    "AutoPayEnable" : "INTEGER",
+    "CategoryID" : "INTEGER",
+    "CategoryName" : "VARCHAR(255)",
+    "CategoryParentID" : "INTEGER"
+}
