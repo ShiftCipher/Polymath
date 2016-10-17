@@ -2,6 +2,8 @@
 
 import sqlite3
 import os
+import re
+import xml.etree.ElementTree as ET
 
 class DB(object):
 
@@ -63,22 +65,24 @@ class DB(object):
 
     def commit(self):
         try:
+            print('Commit Sucessful')
             return self.conn.commit();
         except Exception as e:
             raise
 
-    def createTable(self, tableName, tableFields):
-        if isinstance(tableName, str) and isinstance(tableFields, dict):
-            tableFields = str(fields)
+    def createTable(self, tableName, tableColumns):
+        if isinstance(tableName, str) and isinstance(tableColumns, dict):
+            tableColumns = str(tableColumns)
             for symbol in ["'",':', ',', '{', '}']:
-                if symbol in tableFields:
-                    tableFields = tableFields.replace(symbol, "")
-            query = "CREATE TABLE IF NOT EXISTS %s (%s)" % (tableName, tableFields)
+                if symbol in tableColumns:
+                    tableColumns = tableColumns.replace(symbol, "")
+            query = "CREATE TABLE IF NOT EXISTS %s (%s)" % (tableName, tableColumns)
             try:
                 print("Create Table Sucessful")
                 return self.cur.execute(query)
             except Exception as e:
                 raise
+
 
     def dropTable(self, tableName):
         if isinstance(tableName, str):
@@ -89,35 +93,54 @@ class DB(object):
             except Exception as e:
                 raise
 
-    def insert(self, tableName, tableFieldsValues):
-        if isinstance(tableName, str) and isinstance(tableFieldsValues, dict):
-            query = "INSERT INTO %s VALUES %s" % (tableName, tableFieldsValues)
+
+
+    def select(self, tableName, tableColumns, tableValues):
+        if isinstance(tableName, str) and isinstance(tableValues, dict):
+            query = "INSERT INTO {0} ({1}) VALUES ({2});".format(tableName, tableColumns, tableValues)
+            print(type(query))
+            print(query)
             try:
                 print("Insert Values Sucessful")
                 return self.cur.execute(query)
             except Exception as e:
                 raise
 
-    def select(self, tableName, tableFieldsValues):
-        if isinstance(tableName, str) and isinstance(tableFieldsValues, dict):
-            query = "INSERT INTO %s VALUES %s" % (tableName, tableFieldsValues)
+    def createTablesByColumn(self, name, columns, depth):
+        if isinstance(columns, dict) and isinstance(name, str):
             try:
-                print("Insert Values Sucessful")
-                return self.cur.execute(query)
+                for level in range(0, int(depth)):
+                    self.createTable(name + str(level), columns)
             except Exception as e:
                 raise
 
-ebay = DB('ebay')
-ebay.connect()
+    def insert(self, tableName, tableColumns, tableValues):
+        if isinstance(tableName, str) and isinstance(tableValues, dict):
+            query = "INSERT INTO {0} ({1}) VALUES ({2});".format(tableName, tableColumns, tableValues)
+            print(type(query))
+            print(query)
+            try:
+                print("Insert Values Sucessful")
+                self.cur.execute(query)
+            except Exception as e:
+                raise
 
-fields = {
-    'BestOfferEnabled' : 'boolean',
-    'AutoPayEnable' : 'boolean',
-    'CategoryID' : 'integer',
-    'CategoryName' : 'string',
-    'CategoryParentID' : 'integer'
-}
-
-ebay.createTable('daniel', fields)
-ebay.commit()
-ebay.close()
+    def parseXML(self, tag, columnsName, path):
+        if isinstance(tag, str) and isinstance(path, str):
+            try:
+                context = ET.iterparse(path, events=('end',))
+                for event, elem in context:
+                    if re.sub('{.*?}', '', elem.tag) == tag:
+                        values = []
+                        level = int()
+                        for item in elem:
+                            values.append(item.text)
+                            if re.sub('{.*?}', '', item.tag) == 'CategoryLevel':
+                                level = int(item.text)
+                        values = ''.join(values)
+                        tableName = 'CategoryLevel' + str(level)
+                        self.insert(tableName, columnsName, values)
+                        values = []
+                        elem.clear()
+            except Exception as e:
+                raise
