@@ -10,7 +10,7 @@ def env(name):
             line = line.split("=")
             try:
                 if line[0] == name:
-                    return line[1].replace("\n", "")
+                    return str(line[1].replace("\n", ""))
             except Exception as e:
                 raise
         file.close()
