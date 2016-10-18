@@ -5,6 +5,20 @@ import os
 import re
 import xml.etree.ElementTree as ET
 
+class Table(object):
+
+    """docstring for Table."""
+
+    def __init__(self, name):
+        self.columns = {}
+        self.arg = name
+
+    def addColumn(self, name, value):
+        self.columns[name] = value
+
+    def getAllColumns(self):
+        return self.columns
+
 class DB(object):
 
     """docstring for DB."""
@@ -27,6 +41,7 @@ class DB(object):
                 raise
 
     def connect(self):
+        print('Trying to Connect to Database')
         try:
             self.conn = sqlite3.connect(self.name)
             self.cur = self.conn.cursor()
@@ -70,19 +85,15 @@ class DB(object):
         except Exception as e:
             raise
 
-    def createTable(self, tableName, tableColumns):
-        if isinstance(tableName, str) and isinstance(tableColumns, dict):
-            tableColumns = str(tableColumns)
-            for symbol in ["'",':', ',', '{', '}']:
-                if symbol in tableColumns:
-                    tableColumns = tableColumns.replace(symbol, "")
-            query = "CREATE TABLE IF NOT EXISTS %s (%s)" % (tableName, tableColumns)
-            try:
-                print("Create Table Sucessful")
-                return self.cur.execute(query)
-            except Exception as e:
-                raise
+    def getAllTables(self):
+        self.cur.execute("SELECT name FROM sqlite_master WHERE type='table';");
+        data = self.cur.fetchone()
+        return data
 
+    def getTableInfo(self, table):
+        self.cur.execute("SELECT * FROM %s;" % table);
+        data = self.cur.fetchall()
+        return data
 
     def dropTable(self, tableName):
         if isinstance(tableName, str):
@@ -93,54 +104,65 @@ class DB(object):
             except Exception as e:
                 raise
 
-
-
-    def select(self, tableName, tableColumns, tableValues):
+    def insert(self, tableName, tableColumns, tableValues):
         if isinstance(tableName, str) and isinstance(tableValues, dict):
-            query = "INSERT INTO {0} ({1}) VALUES ({2});".format(tableName, tableColumns, tableValues)
-            print(type(query))
-            print(query)
             try:
-                print("Insert Values Sucessful")
+                query = "INSERT INTO {0} ({1}) VALUES ({2});".format(tableName, tableColumns, tableValues)
+                print("Insert Sucessful %s" % query)
                 return self.cur.execute(query)
             except Exception as e:
                 raise
 
-    def createTablesByColumn(self, name, columns, depth):
-        if isinstance(columns, dict) and isinstance(name, str):
-            try:
-                for level in range(0, int(depth)):
-                    self.createTable(name + str(level), columns)
-            except Exception as e:
-                raise
+    def bulkCreate(self):
+        tableName = 'CategoryLevel'
+        table = Table(tableName)
+        table.addColumn('BestOfferEnabled', 'text')
+        table.addColumn('AutoPayEnabled', 'text')
+        table.addColumn('CategoryID', 'text not null')
+        table.addColumn('CategoryLevel', 'text')
+        table.addColumn('CategoryName', 'text')
+        table.addColumn('BestOfferEnabled', 'text')
+        table.addColumn('CategoryParentID', 'text')
+        table.addColumn('LeafCategory', 'text')
+        table.addColumn('LSD', 'text')
+        tableColumns = table.getAllColumns()
+        tableColumns = str(tableColumns)
+        for symbol in ["'", ':', '{', '}']:
+            if symbol in tableColumns:
+                tableColumns = tableColumns.replace(symbol, "")
+        level = 0
+        for level in range(0, int(6)):
+            level += 1
+            query = "CREATE TABLE IF NOT EXISTS {0} ({1})".format(tableName + str(level), tableColumns)
+            print("Create Tables Sucessful %s" % query)
+            self.conn.execute(query)
 
-    def insert(self, tableName, tableColumns, tableValues):
-        if isinstance(tableName, str) and isinstance(tableValues, dict):
-            query = "INSERT INTO {0} ({1}) VALUES ({2});".format(tableName, tableColumns, tableValues)
-            print(type(query))
-            print(query)
-            try:
-                print("Insert Values Sucessful")
-                self.cur.execute(query)
-            except Exception as e:
-                raise
-
-    def parseXML(self, tag, columnsName, path):
+    def bulkInsert(self, tag, path):
         if isinstance(tag, str) and isinstance(path, str):
             try:
-                context = ET.iterparse(path, events=('end',))
-                for event, elem in context:
+                itertree = ET.iterparse(path)
+                total = 0
+                for event, elem in itertree:
                     if re.sub('{.*?}', '', elem.tag) == tag:
+                        row = {}
+                        columns = []
                         values = []
-                        level = int()
+                        categoryLevel = 1
                         for item in elem:
-                            values.append(item.text)
-                            if re.sub('{.*?}', '', item.tag) == 'CategoryLevel':
-                                level = int(item.text)
-                        values = ''.join(values)
-                        tableName = 'CategoryLevel' + str(level)
-                        self.insert(tableName, columnsName, values)
-                        values = []
+                            value = item.text.replace('\'', "")
+                            value = "'%s'" % value
+                            column = re.sub('{.*?}', '', item.tag)
+                            values.append(value)
+                            columns.append(column)
+                            if column == 'CategoryLevel':
+                                categoryLevel = int(item.text)
                         elem.clear()
+                        columns = ", ".join(columns)
+                        values = ", ".join(values)
+                        total += 1
+                        query = 'INSERT INTO {0} ({1}) VALUES ({2})'.format('CategoryLevel' + str(categoryLevel), columns, values)
+                        print(query)
+                        self.cur.execute(query)
+                print('Total Records Insert %s' % str(total))
             except Exception as e:
                 raise
