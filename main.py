@@ -34,7 +34,7 @@ def getTreeRoot(categoryId):
     ebayDB = db.DB('ebay')
     ebayDB.connect()
 
-    #print(ebayDB.getTableInfo('CategoryLevel3'))
+    #print(ebayDB.getTableInfo('CategoryLevel6'))
 
     found = False
 
@@ -51,21 +51,60 @@ def getTreeRoot(categoryId):
                 node = ebayDB.selectOneId(table + str(int(node[2]) - 1), node[1])
                 print(node)
             print("TREE")
+        else:
+            print('CategoryID Not Found in CategoryLevel' + str(level))
+    ebayDB.close()
+
+    if found == False:
+        print("*" * 15 + " CategoryID Not Found" + " " + "*" * 15)
+        sys.exit("*" * 15 + " Terminate Script" + " " + "*" * 15)
+
+def getTreeLeaf(categoryId):
+    ebayDB = db.DB('ebay')
+    ebayDB.connect()
+
+    #print(ebayDB.getTableInfo('CategoryLevel2'))
+
+    found = False
+    start = int()
+    table = 'CategoryLevel'
 
     for level in range(1, 7):
-        table = 'CategoryLevel'
         node = ebayDB.selectOneId(table + str(level), categoryId)
         if node != None:
-            position = abs(7 - int(node[2]))
-            print("POSITION %s" % position)
-            print(node[0], node[1])
-            for value in range(1, position):
-                node = ebayDB.selectIdbyParent(table + str(position), node[0])
-                print(node)
+            start = int(node[2])
+
+    render = {}
+
+    for level in range(start, 7):
+        node = ebayDB.selectOneId(table + str(level), categoryId)
+        render[level] = node
+        if node != None:
+            node = node[0]
+            nodes = ebayDB.selectIdbyParent(table + str(level + 1), node)
+            render[level + 1] = nodes
+            for value in nodes:
+                value = value[0]
+                nodes = ebayDB.selectIdbyParent(table + str(level + 2), value)
+                render[level + 2] = nodes
+                for value in nodes:
+                    value = value[0]
+                    nodes = ebayDB.selectIdbyParent(table + str(level + 3), value)
+                    render[level + 3] = nodes
+                    for value in nodes:
+                        value = value[0]
+                        nodes = ebayDB.selectIdbyParent(table + str(level + 4), value)
+                        render[level + 4] = nodes
+                        for value in nodes:
+                            value = value[0]
+                            nodes = ebayDB.selectIdbyParent(table + str(level + 5), value)
+                            render[level + 5] = nodes
 
         else:
             print('CategoryID Not Found in CategoryLevel' + str(level))
     ebayDB.close()
+
+    print(render)
 
     if found == False:
         print("*" * 15 + " CategoryID Not Found" + " " + "*" * 15)
@@ -92,6 +131,10 @@ if __name__ == "__main__":
         elif sys.argv[1] == "--render":
             categoryId = str(sys.argv[2])
             getTreeRoot(categoryId)
+            getTreeLeaf(categoryId)
+            ## 550 Root
+            ## 13900 Level6 - 1 Root
+            ## 13897 Level3
 
         elif sys.argv[1] == "--export":
             print(True)

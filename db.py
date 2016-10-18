@@ -91,7 +91,7 @@ class DB(object):
         return data
 
     def getTableInfo(self, table):
-        self.cur.execute("SELECT CategoryID FROM %s;" % table);
+        self.cur.execute("SELECT CategoryID, LeafCategory FROM %s;" % table);
         data = self.cur.fetchall()
         return data
 
@@ -107,7 +107,7 @@ class DB(object):
     def selectOneId(self, tableName, CategoryID):
         if isinstance(tableName, str) and isinstance(CategoryID, str):
             try:
-                query = "SELECT CategoryID, CategoryParentID, CategoryLevel, CategoryName FROM ({0}) WHERE CategoryID = {1};".format(tableName, CategoryID)
+                query = "SELECT CategoryID, CategoryParentID, CategoryLevel FROM ({0}) WHERE CategoryID = {1};".format(tableName, CategoryID)
                 self.cur.execute(query)
                 data = self.cur.fetchone()
                 if data != None:
@@ -119,7 +119,7 @@ class DB(object):
     def selectAllId(self, tableName, CategoryID):
         if isinstance(tableName, str) and isinstance(CategoryID, str):
             try:
-                query = "SELECT CategoryID, CategoryParentID, CategoryLevel, CategoryName FROM ({0}) WHERE CategoryID = {1};".format(tableName, CategoryID)
+                query = "SELECT CategoryID, CategoryParentID, CategoryLevel FROM ({0}) WHERE CategoryID = {1};".format(tableName, CategoryID)
                 self.cur.execute(query)
                 data = self.cur.fetchall()
                 if data != None:
@@ -131,7 +131,7 @@ class DB(object):
     def selectIdbyParent(self, tableName, CategoryParentID):
         if isinstance(tableName, str) and isinstance(CategoryParentID, str):
             try:
-                query = "SELECT CategoryID, CategoryParentID, CategoryLevel, CategoryName FROM ({0}) WHERE CategoryParentID = {1};".format(tableName, CategoryParentID)
+                query = "SELECT CategoryID, CategoryParentID, CategoryLevel FROM ({0}) WHERE CategoryParentID = {1};".format(tableName, CategoryParentID)
                 print("Select Sucessful %s" % query)
                 self.cur.execute(query)
                 data = self.cur.fetchall()
@@ -144,8 +144,6 @@ class DB(object):
         tableName = 'CategoryLevel'
         table = Table(tableName)
         level = 0
-
-        table.addColumn('id', 'integer primary key autoincrement')
         table.addColumn('BestOfferEnabled', 'text')
         table.addColumn('AutoPayEnabled', 'text')
         table.addColumn('CategoryID', 'text not null')
