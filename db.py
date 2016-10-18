@@ -53,7 +53,7 @@ class DB(object):
     def close(self):
         try:
             if self.conn != None:
-                print("Closing Conection Manually")
+                print("Secure Conection Close")
                 return self.conn.close()
             else:
                 print("Please Connect the Database")
@@ -63,7 +63,7 @@ class DB(object):
     def __del__(self):
         try:
             if self.conn != None:
-                print("Secure Conection Close by Object Deletion or Program End")
+                print("Secure Conection by Terminate Script")
                 return self.conn.close()
             else:
                 print("The Database is Closed Now")
@@ -91,7 +91,7 @@ class DB(object):
         return data
 
     def getTableInfo(self, table):
-        self.cur.execute("SELECT * FROM %s;" % table);
+        self.cur.execute("SELECT CategoryID FROM %s;" % table);
         data = self.cur.fetchall()
         return data
 
@@ -104,18 +104,48 @@ class DB(object):
             except Exception as e:
                 raise
 
-    def insert(self, tableName, tableColumns, tableValues):
-        if isinstance(tableName, str) and isinstance(tableValues, dict):
+    def selectOneId(self, tableName, CategoryID):
+        if isinstance(tableName, str) and isinstance(CategoryID, str):
             try:
-                query = "INSERT INTO {0} ({1}) VALUES ({2});".format(tableName, tableColumns, tableValues)
-                print("Insert Sucessful %s" % query)
-                return self.cur.execute(query)
+                query = "SELECT CategoryID, CategoryParentID, CategoryLevel, CategoryName FROM ({0}) WHERE CategoryID = {1};".format(tableName, CategoryID)
+                self.cur.execute(query)
+                data = self.cur.fetchone()
+                if data != None:
+                    print("Select Sucessful %s" % query)
+                return data
+            except Exception as e:
+                raise
+
+    def selectAllId(self, tableName, CategoryID):
+        if isinstance(tableName, str) and isinstance(CategoryID, str):
+            try:
+                query = "SELECT CategoryID, CategoryParentID, CategoryLevel, CategoryName FROM ({0}) WHERE CategoryID = {1};".format(tableName, CategoryID)
+                self.cur.execute(query)
+                data = self.cur.fetchall()
+                if data != None:
+                    print("Select Sucessful %s" % query)
+                return data
+            except Exception as e:
+                raise
+
+    def selectIdbyParent(self, tableName, CategoryParentID):
+        if isinstance(tableName, str) and isinstance(CategoryParentID, str):
+            try:
+                query = "SELECT CategoryID, CategoryParentID, CategoryLevel, CategoryName FROM ({0}) WHERE CategoryParentID = {1};".format(tableName, CategoryParentID)
+                print("Select Sucessful %s" % query)
+                self.cur.execute(query)
+                data = self.cur.fetchall()
+                print(data)
+                return data
             except Exception as e:
                 raise
 
     def bulkCreate(self):
         tableName = 'CategoryLevel'
         table = Table(tableName)
+        level = 0
+
+        table.addColumn('id', 'integer primary key autoincrement')
         table.addColumn('BestOfferEnabled', 'text')
         table.addColumn('AutoPayEnabled', 'text')
         table.addColumn('CategoryID', 'text not null')
@@ -127,10 +157,11 @@ class DB(object):
         table.addColumn('LSD', 'text')
         tableColumns = table.getAllColumns()
         tableColumns = str(tableColumns)
+
         for symbol in ["'", ':', '{', '}']:
             if symbol in tableColumns:
                 tableColumns = tableColumns.replace(symbol, "")
-        level = 0
+
         for level in range(0, int(6)):
             level += 1
             query = "CREATE TABLE IF NOT EXISTS {0} ({1})".format(tableName + str(level), tableColumns)
@@ -147,7 +178,7 @@ class DB(object):
                         row = {}
                         columns = []
                         values = []
-                        categoryLevel = 1
+                        categoryLevel = 0
                         for item in elem:
                             value = item.text.replace('\'', "")
                             value = "'%s'" % value
@@ -161,7 +192,6 @@ class DB(object):
                         values = ", ".join(values)
                         total += 1
                         query = 'INSERT INTO {0} ({1}) VALUES ({2})'.format('CategoryLevel' + str(categoryLevel), columns, values)
-                        print(query)
                         self.cur.execute(query)
                 print('Total Records Insert %s' % str(total))
             except Exception as e:
