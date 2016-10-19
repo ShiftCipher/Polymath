@@ -41,11 +41,8 @@ def rebuild():
 
 def render(categoryId):
     import render
-    ebayDB = db.DB('ebay')
-    ebayDB.connect()
     ebayTree = render.Tree('CategoryLevel', categoryId)
-    ebayTree.Tree2HTML()
-    ebayDB.close()
+    ebayTree.Tree2HTML2()
 
 def main():
     ebayDB = db.DB('ebay')

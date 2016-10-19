@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import db
+import sys
 
 class Tree(object):
     """docstring for Root."""
@@ -13,53 +14,119 @@ class Tree(object):
         self.file = None
         self.steps = 6 - self.lvl
 
-    def getTree(self, DB):
+    def getRootLevel(self, DB):
         for level in range(1, 7):
             node = DB.selectOneId(self.tableName + str(level), self.categoryId)
             if node != None:
                 self.node = [node]
                 self.lvl = int(node[2])
                 self.found = True
+        return self.lvl
 
-        if self.node != None:
-            node = self.node[0]
-            print("*" * 15 + " CategoryID Found %s" % str(self.lvl) + " " + "*" * 15)
-            self.file.write("<div class=L{0}>{1} {2} {3} {4}\n".format(node[2], node[0], node[3], node[2], node[4]))
+    def getRootNodes(self, DB, html):
+        node = self.node[0]
+        level = self.lvl
+        for value in range(1, self.steps):
+            if level > 2:
+                level -= 1
+                nodes = DB.selectOneId(self.tableName + str(level), node[1])
+                html.write("<div class=L{0}>{1} {2} {3} {4}</div>\n".format(node[2], node[0], node[3], node[2], node[4]))
 
-            for value in range(1, self.steps):
-                if self.lvl > 1:
-                    nodes = DB.selectOneId(self.tableName + str(self.lvl - 1), node[1])
-                    self.file.write("<div class=L{0}>{1} {2} {3} {4}\n".format(node[2], node[0], node[3], node[2], node[4]))
-                else:
-                    nodes = DB.selectOneId(self.tableName + str(self.lvl), node[1])
-                    self.file.write("<div class=L{0}>{1} {2} {3} {4}\n".format(node[2], node[0], node[3], node[2], node[4]))
-            self.file.write("</div>\n")
-
-            self.getLeafNodes(self.node, DB)
-            self.file.write("</div>\n")
-
-        if self.found == False:
-            print("*" * 15 + " CategoryID Not Found" + " " + "*" * 15)
-            sys.exit("*" * 15 + " Terminate Script" + " " + "*" * 15)
-
-
-    def getLeafNodes(self, nodes, DB):
+    def getLeafNodes(self, nodes, DB, html):
         level = self.lvl
         while(level < 7):
             leafs = []
             level += 1
             for node in nodes:
-                self.file.write("\t" * level + "<div class=L{0}>{1} {2} {3} {4}\n".format(node[2], node[0], node[3], node[2], node[4]))
+                space = int(node[2])
+                html.write("\t" * space + "<div class=L{0}>{1} {2} {3} {4}\n".format(node[2], node[0], node[3], node[2], node[4]))
                 value = node[0]
                 if level < 7:
                     leafs = DB.selectIdbyParent(self.tableName + str(level), value)
-                    self.getLeafNodes(leafs, DB)
-            self.file.write("\t" * level + "</div>\n")
+                    self.getLeafNodes(leafs, DB, html)
+                html.write("\t" * level + "</div>\n")
+
+
+    def Tree2HTML2(self):
+        ebayDB = db.DB('ebay')
+        ebayDB.connect()
+
+        html = open("html/" + self.categoryId + ".html" , "w+")
+
+        self.getRootLevel(ebayDB)
+        self.getRootNodes(ebayDB, html)
+        self.getLeafNodes(self.node, ebayDB, html)
+
 
     def Tree2HTML(self):
         ebayDB = db.DB('ebay')
         ebayDB.connect()
-        self.file = open("html/" + self.categoryId + ".html" , "w+")
-        self.getTree(ebayDB)
-        self.file.close()
+
+        html = open("html/" + self.categoryId + ".html" , "w+")
+
+        self.getRootLevel(ebayDB)
+        self.getRootNodes(ebayDB, html)
+
+        found = False
+        start = int()
+        table = 'CategoryLevel'
+
         ebayDB.close()
+
+        node = self.node[0]
+        if node != None:
+            html.write("<div class=L{0}>{1} {2} {3} {4}\n".format(node[2], node[0], node[3], node[2], node[4]))
+            value = node[0]
+            nodes = ebayDB.selectIdbyParent(self.tableName + str(1), value)
+            #print(nodes)
+
+            for node in nodes:
+                level = int(node[2])
+                html.write("\t" * level + "<div class=L{0}>{1} {2} {3} {4}\n".format(node[2], node[0], node[3], node[2], node[4]))
+                value = node[0]
+                nodes = ebayDB.selectIdbyParent(self.tableName + str(2), value)
+                #print(nodes)
+
+                for node in nodes:
+                    level = int(node[2])
+                    html.write("\t" * level + "<div class=L{0}>{1} {2} {3} {4}\n".format(node[2], node[0], node[3], node[2], node[4]))
+                    value = node[0]
+                    nodes = ebayDB.selectIdbyParent(self.tableName + str(3), value)
+                    #print(nodes)
+
+                    for node in nodes:
+                        level = int(node[2])
+                        html.write("\t" * level + "<div class=L{0}>{1} {2} {3} {4}\n".format(node[2], node[0], node[3], node[2], node[4]))
+                        value = node[0]
+                        nodes = ebayDB.selectIdbyParent(self.tableName + str(4), value)
+                        #print(nodes)
+
+                        for node in nodes:
+                            level = int(node[2])
+                            html.write("\t" * level + "<div class=L{0}>{1} {2} {3} {4}\n".format(node[2], node[0], node[3], node[2], node[4]))
+                            value = node[0]
+                            nodes = ebayDB.selectIdbyParent(self.tableName + str(5), value)
+                            #print(nodes)
+
+                            for node in nodes:
+                                level = int(node[2])
+                                html.write("\t" * level + "<div class=L{0}>{1} {2} {3} {4}\n".format(node[2], node[0], node[3], node[2], node[4]))
+                                value = node[0]
+                                nodes = ebayDB.selectIdbyParent(self.tableName + str(6), value)
+                                #print(nodes)
+
+                            html.write("\t" * level + "<div>\n".format(node[2]))
+                        html.write("\t" * level + "<div>\n".format(node[2]))
+                    html.write("\t" * level + "<div>\n".format(node[2]))
+                html.write("\t" * level + "<div>\n".format(node[2]))
+            html.write("<\div>\n")
+
+        else:
+            print('CategoryID Not Found in CategoryLevel' + str(level))
+
+        ebayDB.close()
+        html.close()
+
+        if found == False:
+            print("*" * 15 + " CategoryID Not Found" + " " + "*" * 15)
+            sys.exit("*" * 15 + " Terminate Script" + " " + "*" * 15)
