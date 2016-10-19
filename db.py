@@ -67,7 +67,7 @@ class DB(object):
                 #print("Secure Conection by Terminate Script")
                 return self.conn.close()
             else:
-                print("The Database is Closed Now")
+                print("ERROR. The Database is Closed Now")
         except Exception as e:
             raise
 
@@ -175,7 +175,7 @@ class DB(object):
         for level in range(0, int(6)):
             level += 1
             query = "CREATE TABLE IF NOT EXISTS {0} ({1})".format(tableName + str(level), tableColumns)
-            print(query)
+            # print(query)
             self.conn.execute(query)
 
     def bulkInsert(self, tag, path):
@@ -202,7 +202,7 @@ class DB(object):
                         values = ", ".join(values)
                         total += 1
                         query = 'INSERT INTO {0} ({1}) VALUES ({2})'.format('CategoryLevel' + str(categoryLevel), columns, values)
-                        print(query)
+                        # print(query)
                         self.cur.execute(query)
                 print('Total Records Insert %s' % str(total))
             except Exception as e:

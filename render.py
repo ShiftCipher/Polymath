@@ -30,8 +30,8 @@ class Tree(object):
         nodes = []
         html.write("<html>\n\t<head>\n")
         html.write("\t\t<link rel=\"stylesheet\" type=\"text/css\" href=\"style.css\">\n")
-        html.write("<script type=\"text/javascript\" src=\"http://code.jquery.com/jquery.min.js\"></script>\n")
-        html.write("<script src=\"http://code.jquery.com/ui/1.9.2/jquery-ui.min.js\"></script>\n")
+        html.write("\t\t<script type=\"text/javascript\" src=\"http://code.jquery.com/jquery.min.js\"></script>\n")
+        html.write("\t\t<script src=\"http://code.jquery.com/ui/1.9.2/jquery-ui.min.js\"></script>\n")
         html.write("\t\t<script src=\"app.js\"></script>\n")
         html.write("\t</head>\n")
         html.write("\t<body>\n")
@@ -46,8 +46,7 @@ class Tree(object):
                     node = DB.selectOneId(self.tableName + str(int(node[2]) - 1), node[1])
                     nodes.append(node)
 
-        nodes.reverse()
-        for node in nodes:
+        for node in reversed(nodes):
             space = int(node[2]) + 2
             html.write("\t" * space + "<div class=\"L{0}\">{1} {2} {3} {4}</div>\n".format(node[2], node[0], node[3], node[2], node[4]))
 
@@ -68,6 +67,8 @@ class Tree(object):
 
 
     def closeHTML(self, html):
+        for step in range(self.steps + 2, 0, -1):
+            html.write("\t" * step + "</div>\n")
         html.write("\t</body>\n")
         html.write("</html>")
         html.close()
@@ -84,5 +85,4 @@ class Tree(object):
             self.getLeafNodes(self.node, ebayDB, html)
             self.closeHTML(html)
         else:
-            print("ERROR CategoryID NOT Found")
-            sys.exit("Exit")
+            sys.exit("ERROR CategoryID NOT Found")

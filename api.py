@@ -8,6 +8,7 @@ import os
 import re
 import time
 import request
+
 from env import env
 
 class API(object):
@@ -16,10 +17,16 @@ class API(object):
 
     def __init__(self, url):
         self.root = "xml/"
-        self.url = env(url)
+        self.url = None
         self.request = None
-        self.response = None
+        self.response = bytes()
         self.export = None
+        self.getURL(url)
+
+    def getURL(self, url):
+        if isinstance(url, str):
+            self.url = env(url)
+            return self.url
 
     def requestXML(self, headers, data):
         if isinstance(data, str) and isinstance(headers, dict):
@@ -44,8 +51,8 @@ class API(object):
     def exportXML(self, name):
         if isinstance(name, str):
             try:
-                self.export = path
                 path = "xml/" + name + ".xml"
+                self.export = path
                 print("Creating %s" % path)
                 file = open(path, "w+")
                 file.write(self.response.decode('utf-8'))
