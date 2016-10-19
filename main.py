@@ -23,10 +23,8 @@ def download():
     headers = header.getAll()
     ebayAPI = api.API('EBAY_API_URL')
     ebayAPI.requestXML(headers, body)
-    return ebayAPI
-
-def export():
     ebayAPI.exportXML('GetCategories')
+    return ebayAPI
 
 def rebuild():
     ebayDB = db.DB('ebay')
@@ -48,6 +46,7 @@ def populate():
     ebayDB.close()
 
 if __name__ == "__main__":
+
     if len(sys.argv) > 1:
         if sys.argv[1] == "--rebuild":
             rebuild()
@@ -56,7 +55,6 @@ if __name__ == "__main__":
 
         elif sys.argv[1] == "--download":
             download()
-            export()
 
         elif sys.argv[1] == "--render":
             categoryId = str(sys.argv[2])

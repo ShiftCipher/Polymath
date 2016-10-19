@@ -21,6 +21,7 @@ class API(object):
         self.request = None
         self.response = bytes()
         self.export = None
+        self.download = False
         self.getURL(url)
 
     def getURL(self, url):
@@ -34,17 +35,15 @@ class API(object):
             try:
                 self.request = urllib.request.Request(self.url, headers=headers, data=data)
                 self.response = urllib.request.urlopen(self.request).read()
-                download = True
+                self.download = True
                 clock = 1
-                while(download):
+                while(self.download):
+                    time.sleep(1)
+                    clock += 1
                     if isinstance(self.response, bytes):
-                        download = False
-                        print('Download Complete Total Time %s' % clock)
+                        self.download = False
+                        print('Download Complete Total Time %ss' % clock)
                         return self.response
-                    else:
-                        print("Downloading %s" % clock)
-                        time.sleep(1)
-                        clock += 1
             except urllib.error.URLError as e:
                 print(e.reason)
 
@@ -53,7 +52,7 @@ class API(object):
             try:
                 path = "xml/" + name + ".xml"
                 self.export = path
-                print("Creating %s" % path)
+                print("Creating %s.xml" % name )
                 file = open(path, "w+")
                 file.write(self.response.decode('utf-8'))
                 file.close()

@@ -50,7 +50,7 @@ class Body(object):
                     if re.sub('{.*?}', '', elem.tag) == 'CategorySiteID':
                         elem.text = str(siteId)
                 self.tree.write(self.path, encoding="utf-8", method="xml")
-                print('Set CategorySiteID to %s' % str(siteId))
+                #print('Set CategorySiteID to %s' % str(siteId))
         except Exception as e:
             raise
 
@@ -61,7 +61,7 @@ class Body(object):
                     if re.sub('{.*?}', '', elem.tag) == 'eBayAuthToken':
                         elem.text = env(token)
                 self.tree.write(self.path, encoding="utf-8", method="xml")
-                print('Set Requester Credentials')
+                #print('Set Requester Credentials')
         except Exception as e:
             raise
 

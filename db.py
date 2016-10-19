@@ -75,7 +75,7 @@ class DB(object):
         try:
             if os.path.isfile(self.name):
                 os.remove(self.name)
-                print("Sucessful Delete Filename %s" % self.name)
+                #print("Sucessful Delete Filename %s" % self.name)
         except Exception as e:
             raise
 
