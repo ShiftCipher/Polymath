@@ -7,7 +7,7 @@ import db
 import api
 import request
 import sys
-import render
+
 from env import env
 
 def getCategoriesXML():
@@ -39,6 +39,14 @@ def rebuild():
     ebayDB.drop()
     ebayDB.create()
 
+def render(categoryId):
+    import render
+    ebayDB = db.DB('ebay')
+    ebayDB.connect()
+    ebayTree = render.Tree('CategoryLevel', categoryId)
+    ebayTree.Tree2HTML()
+    ebayDB.close()
+
 def main():
     ebayDB = db.DB('ebay')
     ebayDB.connect()
@@ -66,8 +74,7 @@ if __name__ == "__main__":
 
         elif sys.argv[1] == "--render":
             categoryId = str(sys.argv[2])
-            render.getTreeRoot(categoryId)
-            render.getTreeLeaf(categoryId, categoryId)
+            render(categoryId)
 
 
                     ## 550 Root

@@ -1,75 +1,65 @@
 #!/usr/bin/env python
 
 import db
-import sys
 
-def getTreeRoot(categoryId):
-    ebayDB = db.DB('ebay')
-    ebayDB.connect()
+class Tree(object):
+    """docstring for Root."""
+    def __init__(self, tableName, categoryId):
+        self.tableName = tableName
+        self.categoryId = str(categoryId)
+        self.lvl = int()
+        self.found = False
+        self.node = None
+        self.file = None
+        self.steps = 6 - self.lvl
 
-    #print(ebayDB.getTableInfo('CategoryLevel6'))
+    def getTree(self, DB):
+        for level in range(1, 7):
+            node = DB.selectOneId(self.tableName + str(level), self.categoryId)
+            if node != None:
+                self.node = [node]
+                self.lvl = int(node[2])
+                self.found = True
 
-    found = False
+        if self.node != None:
+            node = self.node[0]
+            print("*" * 15 + " CategoryID Found %s" % str(self.lvl) + " " + "*" * 15)
+            self.file.write("<div class=L{0}>{1} {2} {3} {4}\n".format(node[2], node[0], node[3], node[2], node[4]))
 
-    for level in range(1, 7):
-        table = 'CategoryLevel'
-        node = ebayDB.selectOneId(table + str(level), categoryId)
-        if node != None:
-            print("*" * 10 + " Found in CategoryLevel" + str(level) + " " + "*" * 10)
-            print("ROOT")
-            found = True
-            steps = abs(1 - int(node[2])) + 1
-            print(node)
-            for value in range(1, steps):
-                node = ebayDB.selectOneId(table + str(int(node[2]) - 1), node[1])
-                print(node)
-            print("TREE")
-        else:
-            print('CategoryID Not Found in CategoryLevel' + str(level))
-    ebayDB.close()
+            for value in range(1, self.steps):
+                if self.lvl > 1:
+                    nodes = DB.selectOneId(self.tableName + str(self.lvl - 1), node[1])
+                    self.file.write("<div class=L{0}>{1} {2} {3} {4}\n".format(node[2], node[0], node[3], node[2], node[4]))
+                else:
+                    nodes = DB.selectOneId(self.tableName + str(self.lvl), node[1])
+                    self.file.write("<div class=L{0}>{1} {2} {3} {4}\n".format(node[2], node[0], node[3], node[2], node[4]))
+            self.file.write("</div>\n")
 
-    if found == False:
-        print("*" * 15 + " CategoryID Not Found" + " " + "*" * 15)
-        sys.exit("*" * 15 + " Terminate Script" + " " + "*" * 15)
+            self.getLeafNodes(self.node, DB)
+            self.file.write("</div>\n")
 
-def getTreeLeaf(categoryId, path):
-    ebayDB = db.DB('ebay')
-    ebayDB.connect()
+        if self.found == False:
+            print("*" * 15 + " CategoryID Not Found" + " " + "*" * 15)
+            sys.exit("*" * 15 + " Terminate Script" + " " + "*" * 15)
 
-    found = False
-    table = 'CategoryLevel'
-    file = open("html/" + path + ".html" , "w+")
 
-    def getLeafNodes(nodes, level):
+    def getLeafNodes(self, nodes, DB):
+        level = self.lvl
         while(level < 7):
             leafs = []
             level += 1
             for node in nodes:
-                file.write("\t" * level + "<div class=L{0}>{1} {2} {3} {4}\n".format(node[2], node[0], node[3], node[2], node[4]))
+                self.file.write("\t" * level + "<div class=L{0}>{1} {2} {3} {4}\n".format(node[2], node[0], node[3], node[2], node[4]))
                 value = node[0]
                 if level < 7:
-                    leafs = ebayDB.selectIdbyParent(table + str(level), value)
-                    getLeafNodes(leafs, level)
-            file.write("\t" * level + "</div>\n")
+                    leafs = DB.selectIdbyParent(self.tableName + str(level), value)
+                    self.getLeafNodes(leafs, DB)
+            self.file.write("\t" * level + "</div>\n")
 
-    def getRootNode(categoryId):
-        node = []
-        for level in range(1, 7):
-            node = ebayDB.selectOneId(table + str(level), categoryId)
-            if node != None:
-                found = True
-                print("*" * 15 + " CategoryID Found %s" % str(level) + " " + "*" * 15)
-                file.write("<div class=L{0}>{1} {2} {3} {4}\n".format(node[2], node[0], node[3], node[2], node[4]))
-                return [node]
-                file.write("</div>\n")
-
-    rootNode = getRootNode(categoryId)
-    print(rootNode)
-    getLeafNodes(rootNode, int(rootNode[0][2]))
-
-    file.close()
-    ebayDB.close()
-
-    if found == False:
-        print("*" * 15 + " CategoryID Not Found" + " " + "*" * 15)
-        sys.exit("*" * 15 + " Terminate Script" + " " + "*" * 15)
+    def Tree2HTML(self):
+        ebayDB = db.DB('ebay')
+        ebayDB.connect()
+        self.file = open("html/" + self.categoryId + ".html" , "w+")
+        self.getTree(ebayDB)
+        self.file.close()
+        ebayDB.close()
