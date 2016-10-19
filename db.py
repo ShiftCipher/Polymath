@@ -32,21 +32,21 @@ class DB(object):
 
     def create(self):
         if os.path.isfile(self.name):
-            print("File %s Exist" % self.name)
+            #print("File %s Exist" % self.name)
             pass
         else:
             try:
                 file = open(self.name, "w+")
-                print("Creating %s" % self.name)
+                #print("Creating %s" % self.name)
             except Exception as e:
                 raise
 
     def connect(self):
-        print('Trying to Connect to Database')
+        #print('Trying to Connect to Database')
         try:
             self.conn = sqlite3.connect(self.name)
             self.cur = self.conn.cursor()
-            print("Connecting to %s" % self.name)
+            #print("Connecting to %s" % self.name)
             return self.cur
         except Exception as e:
             raise
@@ -54,7 +54,7 @@ class DB(object):
     def close(self):
         try:
             if self.conn != None:
-                print("Secure Conection Close")
+                #print("Secure Conection Close")
                 return self.conn.close()
             else:
                 print("Please Connect the Database")
@@ -64,7 +64,7 @@ class DB(object):
     def __del__(self):
         try:
             if self.conn != None:
-                print("Secure Conection by Terminate Script")
+                #print("Secure Conection by Terminate Script")
                 return self.conn.close()
             else:
                 print("The Database is Closed Now")
@@ -109,7 +109,7 @@ class DB(object):
         if isinstance(tableName, str) and isinstance(CategoryID, str):
             try:
                 query = """
-                SELECT CategoryID, CategoryParentID, CategoryLevel, CategoryName, BestOfferEnabled
+                SELECT CategoryID, CategoryParentID, CategoryLevel, CategoryName, BestOfferEnabled, LeafCategory
                 FROM ({0})
                 WHERE CategoryID = {1};""".format(tableName, CategoryID)
                 self.cur.execute(query)
@@ -127,7 +127,7 @@ class DB(object):
         if isinstance(tableName, str) and isinstance(CategoryID, str):
             try:
                 query = """
-                SELECT CategoryID, CategoryParentID, CategoryLevel, CategoryName, BestOfferEnabled
+                SELECT CategoryID, CategoryParentID, CategoryLevel, CategoryName, BestOfferEnabled, LeafCategory
                 FROM ({0}) WHERE CategoryID = {1};""".format(tableName, CategoryID)
                 self.cur.execute(query)
                 data = self.cur.fetchall()

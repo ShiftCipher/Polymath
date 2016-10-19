@@ -10,7 +10,9 @@ import sys
 
 from env import env
 
-def getCategoriesXML():
+def download():
+    ebayAPI = api.API('EBAY_API')
+
     header = request.Head()
     header.addHeader('X-EBAY-API-CALL-NAME', 'GetCategories')
     header.addHeader('X-EBAY-API-APP-NAME', env('APP_NAME'))
@@ -19,19 +21,14 @@ def getCategoriesXML():
     header.addHeader('X-EBAY-API-SITEID', '0')
     header.addHeader('X-EBAY-API-COMPATIBILITY-LEVEL', '989')
     header.addHeader('Content-Type', 'text/xml')
+
     body = request.Body('ebayGetCategories', 'EBAY_AUTH_TOKEN').getXML()
     headers = header.getAll()
-    return (headers, body)
 
-def getResponseXML():
-    ebayAPI = api.API('EBAY_API')
-    ebayAPI.requestXML(getCategoriesXML())
-    return ebayAPI
+    return ebayAPI.requestXML(headers, body)
 
 def export():
-    ebayAPI.exportXML('GetCategories')
-
-def download():
+    ebayAPI = download()
     ebayAPI.exportXML('GetCategories')
 
 def rebuild():
@@ -42,16 +39,18 @@ def rebuild():
 def render(categoryId):
     import render
     ebayTree = render.Tree('CategoryLevel', categoryId)
-    ebayTree.Tree2HTML2()
+    ebayTree.toHTML()
 
-def main():
+def populate():
     ebayDB = db.DB('ebay')
     ebayDB.connect()
-    #ebayDB.download()
     ebayDB.bulkCreate()
     ebayDB.bulkInsert('Category', 'xml/ebayCategories.xml')
     ebayDB.commit()
     ebayDB.close()
+
+def main():
+    populate()
 
 if __name__ == "__main__":
 
@@ -60,6 +59,8 @@ if __name__ == "__main__":
 
     elif len(sys.argv) > 1:
         if sys.argv[1] == "--rebuild":
+            download()
+            export()
             rebuild()
             main()
 
@@ -73,7 +74,6 @@ if __name__ == "__main__":
             categoryId = str(sys.argv[2])
             render(categoryId)
 
-
-                    ## 550 Root
-                    ## 13900 Level6 - 1 Root
-                    ## 13897 Level3
+        ## 550 Root
+        ## 13900 Level6 - 1 Root
+        ## 13897 Level3
