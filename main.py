@@ -59,7 +59,7 @@ def getTreeRoot(categoryId):
         print("*" * 15 + " CategoryID Not Found" + " " + "*" * 15)
         sys.exit("*" * 15 + " Terminate Script" + " " + "*" * 15)
 
-def getTreeLeaf(categoryId):
+def getTreeLeaf(categoryId, path):
     ebayDB = db.DB('ebay')
     ebayDB.connect()
 
@@ -74,41 +74,71 @@ def getTreeLeaf(categoryId):
         if node != None:
             start = int(node[2])
 
-    render = {}
+    total = []
+    html = []
 
-    for level in range(start, 7):
-        node = ebayDB.selectOneId(table + str(level), categoryId)
-        render[level] = node
-        if node != None:
-            node = node[0]
-            nodes = ebayDB.selectIdbyParent(table + str(level + 1), node)
-            render[level + 1] = nodes
-            for value in nodes:
-                value = value[0]
-                nodes = ebayDB.selectIdbyParent(table + str(level + 2), value)
-                render[level + 2] = nodes
-                for value in nodes:
-                    value = value[0]
-                    nodes = ebayDB.selectIdbyParent(table + str(level + 3), value)
-                    render[level + 3] = nodes
-                    for value in nodes:
-                        value = value[0]
-                        nodes = ebayDB.selectIdbyParent(table + str(level + 4), value)
-                        render[level + 4] = nodes
-                        for value in nodes:
-                            value = value[0]
-                            nodes = ebayDB.selectIdbyParent(table + str(level + 5), value)
-                            render[level + 5] = nodes
+    file = open("html/" + path + ".html" , "w+")
 
-        else:
-            print('CategoryID Not Found in CategoryLevel' + str(level))
+    node = ebayDB.selectOneId(table + str(start), categoryId)
+    if node != None:
+        file.write("<div class=\"L1\">{0} {1} {2} {3}\n".format(node[0], node[3], node[2], node[4]))
+        value = node[0]
+        total.append(node)
+        nodes = []
+        nodes = ebayDB.selectIdbyParent(table + str(1), value)
+        #print(nodes)
+
+        for node in nodes:
+            file.write("\t<div class=\"L2\">{0} {1} {2} {3}\n".format(node[0], node[3], node[2], node[4]))
+            total.append(node)
+            value = node[0]
+            nodes = ebayDB.selectIdbyParent(table + str(2), value)
+            #print(nodes)
+
+            for node in nodes:
+                file.write("\t\t<div class=\"L2\">{0} {1} {2} {3}\n".format(node[0], node[3], node[2], node[4]))
+                total.append(node)
+                value = node[0]
+                nodes = ebayDB.selectIdbyParent(table + str(3), value)
+                #print(nodes)
+
+                for node in nodes:
+                    file.write("\t\t\t<div class=\"L2\">{0} {1} {2} {3}\n".format(node[0], node[3], node[2], node[4]))
+                    total.append(node)
+                    value = node[0]
+                    nodes = ebayDB.selectIdbyParent(table + str(4), value)
+                    #print(nodes)
+
+                    for node in nodes:
+                        file.write("\t\t\t\t<div class=\"L2\">{0} {1} {2} {3}\n".format(node[0], node[3], node[2], node[4]))
+                        total.append(node)
+                        value = node[0]
+                        nodes = ebayDB.selectIdbyParent(table + str(5), value)
+                        #print(nodes)
+
+                        for node in nodes:
+                            file.write("\t\t\t\t\t<div class=\"L2\">{0} {1} {2} {3}\n".format(node[0], node[3], node[2], node[4]))
+                            total.append(node)
+                            value = node[0]
+                            nodes = ebayDB.selectIdbyParent(table + str(6), value)
+                            #print(nodes)
+
+                        file.write("\t\t\t\t<\div>\n")
+                    file.write("\t\t\t<\div>\n")
+                file.write("\t\t<td>\n")
+            file.write("\t<\div>\n")
+        file.write("<\div>\n")
+
+    else:
+        print('CategoryID Not Found in CategoryLevel' + str(level))
+
     ebayDB.close()
-
-    print(render)
+    file.close()
 
     if found == False:
         print("*" * 15 + " CategoryID Not Found" + " " + "*" * 15)
         sys.exit("*" * 15 + " Terminate Script" + " " + "*" * 15)
+
 
 def main():
     ebayDB = db.DB('ebay')
@@ -131,7 +161,7 @@ if __name__ == "__main__":
         elif sys.argv[1] == "--render":
             categoryId = str(sys.argv[2])
             getTreeRoot(categoryId)
-            getTreeLeaf(categoryId)
+            getTreeLeaf(categoryId, categoryId)
             ## 550 Root
             ## 13900 Level6 - 1 Root
             ## 13897 Level3

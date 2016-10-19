@@ -4,6 +4,7 @@ import sqlite3
 import os
 import re
 import xml.etree.ElementTree as ET
+import itertools
 
 class Table(object):
 
@@ -91,7 +92,7 @@ class DB(object):
         return data
 
     def getTableInfo(self, table):
-        self.cur.execute("SELECT CategoryID, LeafCategory FROM %s;" % table);
+        self.cur.execute("SELECT * FROM %s;" % table);
         data = self.cur.fetchall()
         return data
 
@@ -107,35 +108,46 @@ class DB(object):
     def selectOneId(self, tableName, CategoryID):
         if isinstance(tableName, str) and isinstance(CategoryID, str):
             try:
-                query = "SELECT CategoryID, CategoryParentID, CategoryLevel FROM ({0}) WHERE CategoryID = {1};".format(tableName, CategoryID)
+                query = """
+                SELECT CategoryID, CategoryParentID, CategoryLevel, CategoryName, BestOfferEnabled
+                FROM ({0})
+                WHERE CategoryID = {1};""".format(tableName, CategoryID)
                 self.cur.execute(query)
                 data = self.cur.fetchone()
-                if data != None:
-                    print("Select Sucessful %s" % query)
-                return data
+                if not data:
+                    pass
+                elif data == None:
+                    pass
+                else:
+                    return data
             except Exception as e:
                 raise
 
     def selectAllId(self, tableName, CategoryID):
         if isinstance(tableName, str) and isinstance(CategoryID, str):
             try:
-                query = "SELECT CategoryID, CategoryParentID, CategoryLevel FROM ({0}) WHERE CategoryID = {1};".format(tableName, CategoryID)
+                query = """
+                SELECT CategoryID, CategoryParentID, CategoryLevel, CategoryName, BestOfferEnabled
+                FROM ({0}) WHERE CategoryID = {1};""".format(tableName, CategoryID)
                 self.cur.execute(query)
                 data = self.cur.fetchall()
-                if data != None:
-                    print("Select Sucessful %s" % query)
-                return data
+                if not data:
+                    pass
+                elif data == None:
+                    pass
+                else:
+                    return data
             except Exception as e:
                 raise
 
     def selectIdbyParent(self, tableName, CategoryParentID):
         if isinstance(tableName, str) and isinstance(CategoryParentID, str):
             try:
-                query = "SELECT CategoryID, CategoryParentID, CategoryLevel FROM ({0}) WHERE CategoryParentID = {1};".format(tableName, CategoryParentID)
-                print("Select Sucessful %s" % query)
+                query = """
+                SELECT CategoryID, CategoryParentID, CategoryLevel, CategoryName, BestOfferEnabled
+                FROM ({0}) WHERE CategoryParentID = {1};""".format(tableName, CategoryParentID)
                 self.cur.execute(query)
                 data = self.cur.fetchall()
-                print(data)
                 return data
             except Exception as e:
                 raise
@@ -163,7 +175,7 @@ class DB(object):
         for level in range(0, int(6)):
             level += 1
             query = "CREATE TABLE IF NOT EXISTS {0} ({1})".format(tableName + str(level), tableColumns)
-            print("Create Tables Sucessful %s" % query)
+            print(query)
             self.conn.execute(query)
 
     def bulkInsert(self, tag, path):
@@ -190,6 +202,7 @@ class DB(object):
                         values = ", ".join(values)
                         total += 1
                         query = 'INSERT INTO {0} ({1}) VALUES ({2})'.format('CategoryLevel' + str(categoryLevel), columns, values)
+                        print(query)
                         self.cur.execute(query)
                 print('Total Records Insert %s' % str(total))
             except Exception as e:
